@@ -1,4 +1,4 @@
-module AstrodynamicsModels
+module AstroDynModels
 
 # package code goes here
 
