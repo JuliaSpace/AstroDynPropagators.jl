@@ -6,7 +6,7 @@ export Propagator, propagate
 import Base: show
 
 abstract type Propagator end
-abstract type AbstractModel end
+abstract type Force end
 
 function propagate(p::Propagator, s0::AbstractState, Δt; points=:all)
     Δt = second.(Δt)
