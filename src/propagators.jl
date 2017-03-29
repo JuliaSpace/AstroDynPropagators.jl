@@ -1,10 +1,19 @@
-export Propagator
-export state, trajectory
+using AstroDynBase
+using AstroDynCoordinates
+
+export Propagator, propagate
 
 import Base: show
 
-abstract Propagator
-abstract AbstractModel
+abstract type Propagator end
+abstract type AbstractModel end
 
-include("propagators/kepler.jl")
-include("propagators/ode.jl")
+function propagate(p::Propagator, s0::AbstractState, Δt; points=:all)
+    Δt = second.(Δt)
+    propagate(p, s0, Δt, points)
+end
+
+function propagate(p::Propagator, s0::State; points=:all)
+    Δt = period(s0)
+    propagate(p, s0, Δt, points)
+end

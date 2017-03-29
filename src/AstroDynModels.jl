@@ -1,5 +1,7 @@
 module AstroDynModels
 
-# package code goes here
+include("trajectories.jl")
+include("propagators.jl")
+include("propagators/kepler.jl")
 
 end # module
