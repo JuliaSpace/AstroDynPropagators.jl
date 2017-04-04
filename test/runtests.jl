@@ -1,7 +1,7 @@
-using AstroDynModels
+using AstroDynPropagators
 using Base.Test
 
-@testset "AstroDynModels" begin
+@testset "AstroDynPropagators" begin
     include("kepler.jl")
     include("ode.jl")
 end

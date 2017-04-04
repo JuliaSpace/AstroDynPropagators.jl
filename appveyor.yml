@@ -37,7 +37,7 @@ build_script:
   - C:\projects\julia\bin\julia -e "Pkg.checkout(\"Dopri\"); Pkg.checkout(\"Sundials\")"
   - IF EXIST .git\shallow (git fetch --unshallow)
   - C:\projects\julia\bin\julia -e "versioninfo();
-      Pkg.clone(pwd(), \"AstroDynModels\"); Pkg.build(\"AstroDynModels\")"
+      Pkg.clone(pwd(), \"AstroDynPropagators\"); Pkg.build(\"AstroDynPropagators\")"
 
 test_script:
-  - C:\projects\julia\bin\julia -e "Pkg.test(\"AstroDynModels\")"
+  - C:\projects\julia\bin\julia -e "Pkg.test(\"AstroDynPropagators\")"

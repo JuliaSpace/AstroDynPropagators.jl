@@ -20,9 +20,9 @@ script:
  - julia -e 'Pkg.clone("https://github.com/JuliaAstrodynamics/AstroDynCoordinates.jl.git")'
  - julia -e 'Pkg.clone("https://github.com/JuliaAstrodynamics/JPLEphemeris.jl.git")'
  - julia -e 'Pkg.checkout("Dopri"); Pkg.checkout("Sundials")'
- - julia -e 'Pkg.clone(pwd()); Pkg.build("AstroDynModels"); Pkg.test("AstroDynModels"; coverage=true)'
+ - julia -e 'Pkg.clone(pwd()); Pkg.build("AstroDynPropagators"); Pkg.test("AstroDynPropagators"; coverage=true)'
 after_success:
   # push coverage results to Coveralls
-  - julia -e 'cd(Pkg.dir("AstroDynModels")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  - julia -e 'cd(Pkg.dir("AstroDynPropagators")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
   # push coverage results to Codecov
-  - julia -e 'cd(Pkg.dir("AstroDynModels")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  - julia -e 'cd(Pkg.dir("AstroDynPropagators")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'

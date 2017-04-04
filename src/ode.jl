@@ -33,7 +33,7 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {F<:Frame, C<:Cele
     t1 = ustrip(Δt)
     y = array(s)
     tout, yout = dop853((f, t, y) -> rhs!(f, t, y, 0.0, p), y, [t0, t1],
-        solout=solout!,
+        # solout=solout!,
         points=:all,
         maxstep=p.maxstep,
         numstep=p.numstep,
@@ -50,15 +50,17 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {F<:Frame, C<:Cele
 end
 
 function rhs!(f, t, y, params, propagator)
-    fill!(f, 0.0)
+    δv = fill(0.0kps2, 3)
     for force in propagator.forces
-        evaluate!(force, f, t, y)
+        evaluate!(force, δv, t, y[1:3] * km, y[4:6] * kps)
     end
+    f[1:3] = y[4:6]
+    f[4:6] = ustrip(δv)
 end
 
 function solout!(told, t, y, contd, params, propagator)
     firststep = told ≈ t
-    if (i, evt) in enumerate(params.events)
+    for (i, evt) in enumerate(params.events)
         isdone(evt) && continue
 
         if isdetected(evt) && !firststep
