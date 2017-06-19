@@ -38,21 +38,21 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {F<:Frame, C<:Cele
         maxstep=p.maxstep,
         numstep=p.numstep,
     )
-    ep1 = epoch(s0) + tout[end] * seconds
-    s1 = State(ep1, yout[end][1:3]km, yout[end][4:6]kps, F, C)
-    x = map(v -> v[1]km, yout)
-    y = map(v -> v[2]km, yout)
-    z = map(v -> v[3]km, yout)
-    vx = map(v -> v[4]kps, yout)
-    vy = map(v -> v[5]kps, yout)
-    vz = map(v -> v[6]kps, yout)
-    Trajectory(s0, s1, tout * seconds, x, y, z, vx, vy, vz)
+    ep1 = epoch(s0) + tout[end]
+    s1 = State(ep1, yout[end][1:3], yout[end][4:6], F, C)
+    x = map(v -> v[1], yout)
+    y = map(v -> v[2], yout)
+    z = map(v -> v[3], yout)
+    vx = map(v -> v[4], yout)
+    vy = map(v -> v[5], yout)
+    vz = map(v -> v[6], yout)
+    Trajectory(s0, s1, tout, x, y, z, vx, vy, vz)
 end
 
 function rhs!(f, t, y, params, propagator)
-    δv = fill(0.0kps2, 3)
+    δv = fill(0.0, 3)
     for force in propagator.forces
-        evaluate!(force, δv, t, y[1:3] * km, y[4:6] * kps)
+        evaluate!(force, δv, t, y[1:3], y[4:6])
     end
     f[1:3] = y[4:6]
     f[4:6] = ustrip(δv)

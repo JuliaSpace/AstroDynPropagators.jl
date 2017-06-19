@@ -1,4 +1,7 @@
+using AstroDynBase
 using Parameters
+
+import AstroDynBase: epoch
 
 abstract type Detector end
 abstract type Updater end

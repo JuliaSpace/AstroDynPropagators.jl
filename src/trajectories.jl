@@ -22,7 +22,7 @@ events(tra::AbstractTrajectory) = tra.events
 times(tra::AbstractTrajectory) = tra.times
 
 function Trajectory(initial, final, events=LogEntry[])
-    Trajectory(initial, final, SmoothingSpline[], events)
+    Trajectory(initial, final, [], SmoothingSpline[], events)
 end
 
 function Trajectory(initial, final, t, x, y, z, vx, vy, vz, events=LogEntry[])
@@ -42,13 +42,15 @@ function show(io::IO, tra::Trajectory)
     println(io, " End date:   $(epoch(final(tra)))")
 end
 
-interpolate(tra::Trajectory, time) = SmoothingSplines.predict.(tra.splines, time)
+function interpolate(tra::Trajectory, time)
+    SmoothingSplines.predict.(tra.splines, float(time))
+end
 
 function state(tra::Trajectory, time)
     rv = interpolate(tra, time)
-    r = rv[1:3] * unit(tra.x[1])
-    v = rv[4:6] * unit(tra.vx[1])
-    ep1 = epoch(initial(tra)) + second(time)
+    r = rv[1:3]
+    v = rv[4:6]
+    ep1 = epoch(initial(tra)) + time * seconds
     f = frame(initial(tra))
     b = body(initial(tra))
     return State(ep1, r, v, f, b)
@@ -57,8 +59,10 @@ end
 function state(tra::Trajectory, ep::Epoch)
     ep0 = epoch(initial(tra))
     time = typeof(ep0)(ep) - ep0
-    tra(second(time))
+    tra(in_seconds(time))
 end
+
+state(tra::Trajectory, time::Period) = state(tra, in_seconds(time))
 
 (tra::Trajectory)(time) = state(tra, time)
 

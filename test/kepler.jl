@@ -10,7 +10,7 @@ using AstroDynCoordinates
     s0 = State(ep, r0, v0)
     r1 = [-4219.7527, 4363.0292, -3958.7666]
     v1 = [3.689866, -1.916735, -6.112511]
-    s1 = State(ep + Δt, r1, v1)
+    s1 = State(ep1, r1, v1)
     k = Kepler()
     tra = propagate(k, s0, Δt, points=:none)
     @test isapprox(radius(final(tra)), radius(s1), rtol=1e-4)

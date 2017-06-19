@@ -12,15 +12,16 @@ end
 
 show(io::IO, ::Type{Kepler}) = print(io, "Kepler")
 
-function propagate(p::Kepler, s0::State, Δt, points)
-    ep1 = epoch(s0) + Δt
+function propagate(p::Kepler, s0::State, Δep, points)
+    ep1 = epoch(s0) + Δep
+    Δt = in_seconds(Δep)
     if points == :none
         r1, v1 = kepler(μ(body(s0)), radius(s0), velocity(s0), Δt,
             p.iterations, p.rtol)
         s1 = State(ep1, r1, v1, frame(s0), body(s0))
         Trajectory(s0, s1)
     else
-        times = linspace(zero(Δt), Δt, p.points)
+        times = collect(linspace(zero(Δt), Δt, p.points))
         rt = eltype(radius(s0))
         vt = eltype(velocity(s0))
         x = zeros(rt, p.points)
