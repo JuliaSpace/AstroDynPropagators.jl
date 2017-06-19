@@ -1,7 +1,6 @@
 using AstroDynBase
 using AstroDynCoordinates
 using Parameters
-using Unitful
 
 export Kepler
 

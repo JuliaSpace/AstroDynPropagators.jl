@@ -2,14 +2,14 @@ using AstroDynBase
 using AstroDynCoordinates
 
 @testset "Kepler Propagator" begin
-    r0 = [1131.340, -2282.343, 6672.423]km
-    v0 = [-5.64305, 4.30333, 2.42879]kps
+    r0 = [1131.340, -2282.343, 6672.423]
+    v0 = [-5.64305, 4.30333, 2.42879]
     Δt = 40*60seconds
     ep = TTEpoch(2017, 3, 29)
     ep1 = ep + Δt
     s0 = State(ep, r0, v0)
-    r1 = [-4219.7527, 4363.0292, -3958.7666]km
-    v1 = [3.689866, -1.916735, -6.112511]kps
+    r1 = [-4219.7527, 4363.0292, -3958.7666]
+    v1 = [3.689866, -1.916735, -6.112511]
     s1 = State(ep + Δt, r1, v1)
     k = Kepler()
     tra = propagate(k, s0, Δt, points=:none)
