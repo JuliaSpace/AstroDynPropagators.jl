@@ -1,21 +1,17 @@
+using Parameters
+
 abstract type Detector end
 abstract type Updater end
 
-struct Event
-    time::Nullable{Float64}
-    detector::Nullable{Detector}
-    updater::Nullable{Updater}
-    done::Bool
-    log::Vector{Float64}
+@with_kw struct Event
+    detector::Detector
+    updater::Nullable{Updater} = nothing
+    multi::Bool = isnull(updater)
 end
-Event(detector::Detector, updater=nothing) = Event(nothing, detector, updater, false, [])
-Event(time::Float64, updater=nothing) = Event(time, nothing, updater, false, [])
-isdone(evt::Event) = evt.done
-istimed(evt::Event) = !isnull(evt.time)
-isdetected(evt::Event) = !isnull(evt.detector)
 
-time(evt::Event) = !isnull(evt.time) ? get(evt.time) : time(get(evt.detector))
-
+struct Timer{T<:Number} <: Detector
+    time::T
+end
 struct Start <: Detector end
 struct End <: Detector end
 struct Apocenter <: Detector end
@@ -27,3 +23,13 @@ struct Abort <: Updater
     msg::String
     Abort(num=1, msg="Propagation abortedd") = Abort(num, msg)
 end
+
+struct LogEntry
+    id::Int
+    detector::Symbol
+    t::Epoch
+end
+
+id(l::LogEntry) = l.id
+detector(l::LogEntry) = l.detector
+epoch(l::LogEntry) = l.epoch
