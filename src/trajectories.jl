@@ -3,6 +3,7 @@ using AstroDynCoordinates
 using SmoothingSplines
 
 import Base: getindex, endof, show
+import AstroDynBase: state
 
 export Trajectory, initial, final, state, events, times
 

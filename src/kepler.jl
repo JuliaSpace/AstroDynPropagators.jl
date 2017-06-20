@@ -10,19 +10,19 @@ export Kepler
     rtol::Float64 = sqrt(eps())
 end
 
-show(io::IO, ::Type{Kepler}) = print(io, "Kepler")
+# show(io::IO, ::Type{Kepler}) = print(io, "Kepler")
 
 function propagate(p::Kepler, s0::State, Δep, points)
     ep1 = epoch(s0) + Δep
     Δt = in_seconds(Δep)
     if points == :none
-        r1, v1 = kepler(μ(body(s0)), radius(s0), velocity(s0), Δt,
+        r1, v1 = kepler(μ(body(s0)), position(s0), velocity(s0), Δt,
             p.iterations, p.rtol)
         s1 = State(ep1, r1, v1, frame(s0), body(s0))
         Trajectory(s0, s1)
     else
         times = collect(linspace(zero(Δt), Δt, p.points))
-        rt = eltype(radius(s0))
+        rt = eltype(position(s0))
         vt = eltype(velocity(s0))
         x = zeros(rt, p.points)
         y = zeros(rt, p.points)
@@ -31,7 +31,7 @@ function propagate(p::Kepler, s0::State, Δep, points)
         vy = zeros(vt, p.points)
         vz = zeros(vt, p.points)
         for (i, t) in enumerate(times)
-            r, v = kepler(μ(body(s0)), radius(s0), velocity(s0), t,
+            r, v = kepler(μ(body(s0)), position(s0), velocity(s0), t,
                 p.iterations, p.rtol)
             x[i] = r[1]
             y[i] = r[2]

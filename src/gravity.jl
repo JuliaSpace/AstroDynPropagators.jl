@@ -1,29 +1,41 @@
-export UniformGravity, J2Gravity, ThirdBody
+export Gravity, UniformGravity, J2Gravity, ThirdBody
 
-struct UniformGravity{C<:CelestialBody} <: Force end
+abstract type Gravity <: Force end
 
-UniformGravity(::Type{C}) where {C<:CelestialBody} = UniformGravity{C}()
+struct UniformGravity <: Gravity end
 
-function evaluate!(::UniformGravity{C}, δv, t, r, v) where C<:CelestialBody
-    μ = mu(C)
+function evaluate!(::UniformGravity, δv, t, ep, r, v, params, propagator)
+    μ = mu(propagator.center)
     rm = norm(r)
     δv .+= -μ .* r ./ rm^3
 end
 
-struct J2Gravity{C<:CelestialBody} <: Force end
+struct J2Gravity <: Gravity end
 
-J2Gravity(::Type{C}) where {C<:CelestialBody} = J2Gravity{C}()
-
-function evaluate!(::J2Gravity{C}, δv, t, r, v) where C<:CelestialBody
-    μ = mu(C)
-    J₂ = j2(C)
+function evaluate!(::J2Gravity, δv, t, ep, r, v, params, propagator)
+    center = propagator.center
+    μ = mu(center)
+    J₂ = j2(center)
     rm = norm(r)
-    pj = -3 / 2 * μ * J₂ * mean_radius(C)^2 / (rm^5)
+    pj = -3 / 2 * μ * J₂ * mean_radius(center)^2 / (rm^5)
 
-    δv[1:2] .+= -μ .* r[1:2] ./ rm^3 .+ pj .* r[1:2] .* (1.0 - 5.0 * r[3]^2 / rm^2)
+    δv[1:2] .+= -μ .* r[1:2] ./ rm^3 .+ pj .* r[1:2] .*
+        (1.0 - 5.0 * r[3]^2 / rm^2)
     δv[3] += -μ * r[3]/rm^3 + pj * r[3] * (3.0 - 5.0 * r[3]^2 / rm^2)
 end
 
-struct ThirdBody <: Force
+struct ThirdBody <: Gravity
     bodies::Vector{DataType}
+end
+ThirdBody(bodies...) = ThirdBody(collect(bodies))
+
+function evaluate!(tb::ThirdBody, δv, t, ep, r, v, params, propagator)
+    rc3 = zeros(3)
+    rs3 = zeros(3)
+    for body in tb.bodies
+        μ = mu(body)
+        rc3 .= position(ep, propagator.center, body)
+        rs3 .= rc3 .- r
+        δv .+= μ * (rs3 ./ norm(rs3)^3 .- rc3 ./ norm(rc3)^3)
+    end
 end

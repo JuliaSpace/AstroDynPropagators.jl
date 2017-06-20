@@ -24,7 +24,7 @@ struct Impact <: Detector end
 struct Abort <: Updater
     num::Int
     msg::String
-    Abort(num=1, msg="Propagation abortedd") = Abort(num, msg)
+    Abort(num=1, msg="Propagation aborted.") = Abort(num, msg)
 end
 
 struct LogEntry
