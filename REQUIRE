@@ -1,6 +1,5 @@
 julia 0.6-
 AstroDynBase
 AstroDynCoordinates
-Dopri
 DifferentialEquations
 Parameters
