@@ -2,8 +2,8 @@ import DifferentialEquations: ODEProblem, Vern8, solve, OrdinaryDiffEqAlgorithm
 
 function newton!(t, y, dy, μ)
     r = norm(y[1:3])
-    dy[1:3] = y[4:6]
-    dy[4:6] = -μ * y[1:3] / (r*r*r)
+    dy[1:3] .= y[4:6]
+    dy[4:6] .= -μ .* y[1:3] ./ r^3
 end
 
 function test()
@@ -11,17 +11,7 @@ function test()
     v0 = [-5.64305, 4.30333, 2.42879]
     Δt = 86400.0*365
     rv0 = [r0; v0]
-    prob = ODEProblem((t, y, dy) -> newton!(t, y, dy, ustrip(mu(Earth))), rv0, (0.0, Δt))
-    solve(prob, Vern8())[end]
-end
-
-function test2()
-    r0 = [1131.340, -2282.343, 6672.423]km
-    v0 = [-5.64305, 4.30333, 2.42879]kps
-    Δt = 86400.0*365*seconds
-    rv0 = [r0; v0]
-    @show typeof(rv0)
-    prob = ODEProblem((t, y, dy) -> newton!(t, y, dy, mu(Earth)), rv0, (0.0*seconds, Δt))
+    prob = ODEProblem((t, y, dy) -> newton!(t, y, dy, mu(Earth)), rv0, (0.0, Δt))
     solve(prob, Vern8())[end]
 end
 
