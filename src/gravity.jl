@@ -34,8 +34,9 @@ function evaluate!(tb::ThirdBody, δv, t, ep, r, v, params, propagator)
     rs3 = zeros(3)
     for body in tb.bodies
         μ = mu(body)
-        rc3 .= position(ep, propagator.center, body)
+        position!(rc3, ep, propagator.center, body)
         rs3 .= rc3 .- r
         δv .+= μ * (rs3 ./ norm(rs3)^3 .- rc3 ./ norm(rc3)^3)
+        fill!(rc3, 0.0)
     end
 end
