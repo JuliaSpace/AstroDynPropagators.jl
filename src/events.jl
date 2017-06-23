@@ -2,6 +2,11 @@ using AstroDynBase
 using Parameters
 
 import AstroDynBase: epoch
+import DifferentialEquations: terminate!
+
+export Detector, Updater, Event, detect, update!,
+    Apocenter, Pericenter, Timed,
+    Abort, Stop
 
 abstract type Detector end
 abstract type Updater end
@@ -9,30 +14,72 @@ abstract type Updater end
 @with_kw struct Event
     detector::Detector
     updater::Nullable{Updater} = nothing
-    multi::Bool = isnull(updater)
+    detect_all::Bool = isnull(updater)
 end
 
-struct Timer{T<:Number} <: Detector
+function detect(det::Detector, t, y, params, propagator)
+    error("No 'detect' method defined for '$(Base.datatype_name(typeof(det)))'")
+end
+
+struct Timed{T<:Number} <: Detector
     time::T
 end
-struct Start <: Detector end
-struct End <: Detector end
+
+function detect(timed::Timed, t, y, params, propagator)
+    t - timed.time
+end
+
 struct Apocenter <: Detector end
+
+function detect(::Apocenter, t, y, params, propagator)
+    el = keplerian(y, μ(center(propagator)))
+    ano = el[6] - π
+    isretrograde(el[3]) ? -ano : ano
+end
+
 struct Pericenter <: Detector end
+
+function detect(::Pericenter, t, y, params, propagator)
+    el = keplerian(y, μ(center(propagator)))
+    ano = el[6] - π
+    isretrograde(el[3]) ? ano : -ano
+end
+
 struct Impact <: Detector end
 
-struct Abort <: Updater
-    num::Int
-    msg::String
-    Abort(num=1, msg="Propagation aborted.") = Abort(num, msg)
+function detect(::Impact, t, y, params, propagator)
+    -norm(y[1:3]) - mean_radius(center(propagator))
+end
+
+@with_kw struct Abort <: Updater
+    msg::String = "Propagation aborted."
+    num::Int = 1
+end
+
+function update!(u::Abort, integrator, id, params, propagator)
+    if count_id(id, params.log) == u.num
+        error(u.msg)
+    end
+end
+
+@with_kw struct Stop <: Updater
+    num::Int = 1
+end
+
+function update!(u::Stop, integrator, id, params, propagator)
+    if count_id(id, params.log) == u.num
+        terminate!(integrator)
+    end
 end
 
 struct LogEntry
     id::Int
     detector::Symbol
-    t::Epoch
+    time::Float64
+    ep::Epoch
 end
 
 id(l::LogEntry) = l.id
 detector(l::LogEntry) = l.detector
 epoch(l::LogEntry) = l.epoch
+count_id(idx, log) = count(x->id(x) == idx, log)

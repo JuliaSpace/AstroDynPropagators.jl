@@ -1,7 +1,7 @@
 using Parameters
 
-import DifferentialEquations: ODEProblem, Vern8, solve,
-    OrdinaryDiffEqAdaptiveAlgorithm
+import DifferentialEquations: ODEProblem, Vern8, solve, terminate!,
+    OrdinaryDiffEqAdaptiveAlgorithm, ContinuousCallback, CallbackSet
 
 export ODE
 
@@ -12,10 +12,14 @@ export ODE
     minstep::Float64 = 0.0
     maxstep::Float64 = Inf
     algorithm::OrdinaryDiffEqAdaptiveAlgorithm = Vern8()
+    events::Vector{Event} = Event[]
 end
+
+center(ode::ODE{<:Frame,C}) where {C<:CelestialBody} = C
 
 struct ODEParams
     s0::State
+    log::Vector{LogEntry}
 end
 
 function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
@@ -24,10 +28,18 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
     t0 = 0.0
     t1 = in_seconds(Δt)
     y0 = array(s)
-    prm = ODEParams(s)
+    prm = ODEParams(s, LogEntry[])
+    callbacks = ContinuousCallback[]
+    for (id, evt) in enumerate(p.events)
+        push!(callbacks, ContinuousCallback(
+            (t, u, int) -> condition(t, u, int, evt, prm, p),
+            (int) -> affect!(int, id, evt, prm, p),
+        ))
+    end
     prob = ODEProblem(
         (t, y, δy) -> rhs!(t, y, δy, prm, p),
         y0, (t0, t1),
+        callback=CallbackSet(callbacks...),
     )
     res = solve(prob, p.algorithm;
         qmin=p.minstep, qmax=p.maxstep,
@@ -43,7 +55,7 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
     end
     ep1 = epoch(s0) + res.t[end] * seconds
     s1 = State(ep1, res.u[end][1:3], res.u[end][4:6], F, C)
-    Trajectory(s, s1, res.t, x, y, z, vx, vy, vz)
+    Trajectory(s, s1, res.t, x, y, z, vx, vy, vz, prm.log)
 end
 
 function rhs!(t, y, δy, params, propagator)
@@ -60,5 +72,24 @@ function rhs!(t, y, δy, params, propagator)
     end
     if isrotating(propagator.frame)
         rotational!(δv, t, ep, r, v, params, propagator)
+    end
+end
+
+function condition(t, y, integrator, evt, params, propagator)
+    detect(evt.detector, t, y, params, propagator)
+end
+
+function affect!(integrator, idx, evt, params, propagator)
+    if !evt.detect_all
+        undetected = count_id(idx, params.log) == 0
+        !undetected && return
+    end
+
+    ep = epoch(params.s0) + integrator.t * seconds
+    name = Base.datatype_name(typeof(evt.detector))
+    push!(params.log, LogEntry(idx, name, integrator.t, ep))
+
+    if !isnull(evt.updater)
+        update!(get(evt.updater), integrator, idx, params, propagator)
     end
 end
