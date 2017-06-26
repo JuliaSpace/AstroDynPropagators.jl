@@ -99,15 +99,3 @@ function update!(man::ImpulsiveManeuver, integrator, id, params, propagator)
     Δv, _ = rot(man.Δv, zeros(3))
     integrator.u[4:6] .+= Δv
 end
-
-struct LogEntry
-    id::Int
-    detector::Symbol
-    time::Float64
-    ep::Epoch
-end
-
-id(l::LogEntry) = l.id
-detector(l::LogEntry) = l.detector
-epoch(l::LogEntry) = l.epoch
-count_id(idx, log) = count(x->id(x) == idx, log)
