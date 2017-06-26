@@ -15,13 +15,13 @@ load_ephemeris!(SPK, path(de430))
     ep = TTEpoch(2000, 1, 1)
     s0 = State(ep, r0, v0)
     s1 = State(ep + period(s0), r0, v0)
-    ode = ODE(maxstep=1.0)
+    ode = ODE(maxstep=100.0)
     tra = propagate(ode, s0)
     @test final(tra) ≈ s1
 
     s0_rot = State(s0, frame=IAUEarth)
     s1_rot = State(State(ep + period(s0), r0, v0), frame=IAUEarth)
-    ode = ODE(frame=IAUEarth, maxstep=1.0)
+    ode = ODE(frame=IAUEarth, maxstep=100.0)
     tra = propagate(ode, s0)
     @test initial(tra) == s0_rot
     @test final(tra) ≈ s1_rot
@@ -33,7 +33,7 @@ load_ephemeris!(SPK, path(de430))
     s1 = State(ep + Δt, r1, v1)
     ode = ODE(
         forces=[J2Gravity()],
-        maxstep=1.0,
+        maxstep=100.0,
     )
     tra = propagate(ode, s0, Δt)
     @test final(tra) ≈ s1
@@ -46,7 +46,7 @@ load_ephemeris!(SPK, path(de430))
     s1 = State(ep + Δt, r1, v1)
     ode = ODE(
         forces=[UniformGravity(), ThirdBody(Sun, Moon)],
-        maxstep=1.0,
+        maxstep=100.0,
     )
     tra = propagate(ode, s0, Δt)
     @test final(tra) ≈ s1

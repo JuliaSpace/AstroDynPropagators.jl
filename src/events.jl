@@ -13,7 +13,7 @@ abstract type Updater end
 
 @with_kw struct Event
     detector::Detector
-    updater::Nullable{Updater} = nothing
+    updater::Nullable{Updater} = Nullable{Updater}()
     detect_all::Bool = isnull(updater)
 end
 
@@ -33,16 +33,20 @@ struct Apocenter <: Detector end
 
 function detect(::Apocenter, t, y, params, propagator)
     el = keplerian(y, μ(center(propagator)))
-    ano = el[6] - π
-    isretrograde(el[3]) ? -ano : ano
+    ano = el[6]
+    if ano > pi/2
+        ano = abs(ano - pi)
+    elseif ano < -pi/2
+        ano = -abs(ano + pi)
+    end
+    isretrograde(el[3]) ? ano : -ano
 end
 
 struct Pericenter <: Detector end
 
 function detect(::Pericenter, t, y, params, propagator)
     el = keplerian(y, μ(center(propagator)))
-    ano = el[6] - π
-    isretrograde(el[3]) ? ano : -ano
+    isretrograde(el[3]) ? -el[6] : el[6]
 end
 
 struct Impact <: Detector end

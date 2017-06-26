@@ -1,6 +1,6 @@
 using Parameters
 
-import DifferentialEquations: ODEProblem, Vern8, solve, terminate!,
+import DifferentialEquations: ODEProblem, Vern9, solve, terminate!,
     OrdinaryDiffEqAdaptiveAlgorithm, ContinuousCallback, CallbackSet
 
 export ODE
@@ -11,7 +11,7 @@ export ODE
     forces::Vector{Force} = [UniformGravity()]
     minstep::Float64 = 0.0
     maxstep::Float64 = Inf
-    algorithm::OrdinaryDiffEqAdaptiveAlgorithm = Vern8()
+    algorithm::OrdinaryDiffEqAdaptiveAlgorithm = Vern9()
     events::Vector{Event} = Event[]
 end
 
@@ -34,6 +34,7 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
         push!(callbacks, ContinuousCallback(
             (t, u, int) -> condition(t, u, int, evt, prm, p),
             (int) -> affect!(int, id, evt, prm, p),
+            nothing,
         ))
     end
     prob = ODEProblem(
@@ -42,7 +43,7 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
         callback=CallbackSet(callbacks...),
     )
     res = solve(prob, p.algorithm;
-        qmin=p.minstep, qmax=p.maxstep,
+        dtmin=p.minstep, dtmax=p.maxstep,
         save_everystep=points != :none,
     )
     if res.retcode == :MaxIters
@@ -50,12 +51,9 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
     elseif res.retcode != :Success
         error("Solver returned error: $(res.retcode)")
     end
-    for (i, el) in enumerate((:x, :y, :z, :vx, :vy, :vz))
-        @eval $el = [arr[$i] for arr in $res.u]
-    end
     ep1 = epoch(s0) + res.t[end] * seconds
     s1 = State(ep1, res.u[end][1:3], res.u[end][4:6], F, C)
-    Trajectory(s, s1, res.t, x, y, z, vx, vy, vz, prm.log)
+    Trajectory(s, s1, res.t, res.u, prm.log)
 end
 
 function rhs!(t, y, δy, params, propagator)

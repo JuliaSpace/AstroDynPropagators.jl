@@ -18,17 +18,25 @@
     tra = propagate(ode, iss)
     @test AstroDynPropagators.count_id(1, tra.events) == 1
 
+    ode = ODE(events=[Event(detector=Pericenter())])
+    tra = propagate(ode, iss, period(iss) * 2)
+    @test AstroDynPropagators.count_id(1, tra.events) == 2
+
     ode = ODE(events=[Event(detector=Pericenter(), updater=Stop())])
     tra = propagate(ode, iss)
-    @test_broken trueanomaly(final(tra)) ≈ 2π || trueanomaly(final(tra)) ≈ 0.0
+    @test isapprox(trueanomaly(final(tra)), 0.0, atol=1e-12)
 
     ode = ODE(events=[Event(detector=Apocenter())])
     tra = propagate(ode, iss)
     @test AstroDynPropagators.count_id(1, tra.events) == 1
 
+    ode = ODE(events=[Event(detector=Apocenter())])
+    tra = propagate(ode, iss, period(iss) * 2)
+    @test AstroDynPropagators.count_id(1, tra.events) == 2
+
     ode = ODE(events=[Event(detector=Apocenter(), updater=Stop())])
     tra = propagate(ode, iss)
-    @test trueanomaly(final(tra)) ≈ π
+    @test abs(trueanomaly(final(tra))) ≈ π
 
     ode = ODE(events=[Event(detector=Timed(60.0))])
     tra = propagate(ode, iss)
