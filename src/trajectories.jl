@@ -7,34 +7,33 @@ import AstroDynBase: state
 
 export Trajectory, initial, final, state, events, times
 
-abstract type AbstractTrajectory end
-
-struct Trajectory <: AbstractTrajectory
-    initial::AbstractState
-    final::AbstractState
+struct Trajectory{S<:AbstractState}
+    initial::S
+    final::S
     times::Vector
     splines::Vector{SmoothingSpline}
+    array::Matrix
     events::Vector{LogEntry}
 end
 
-initial(tra::AbstractTrajectory) = tra.initial
-final(tra::AbstractTrajectory) = tra.final
-events(tra::AbstractTrajectory) = tra.events
-times(tra::AbstractTrajectory) = tra.times
+initial(tra::Trajectory) = tra.initial
+final(tra::Trajectory) = tra.final
+events(tra::Trajectory) = tra.events
+times(tra::Trajectory) = tra.times
 
 function Trajectory(initial, final, events=LogEntry[])
-    Trajectory(initial, final, [], SmoothingSpline[], events)
+    Trajectory(initial, final, Vector(0), SmoothingSpline[], Matrix(0, 0), events)
 end
 
-function Trajectory(initial, final, t, x, y, z, vx, vy, vz, events=LogEntry[])
-    splines = Array{SmoothingSpline}(6)
-    splines[1] = fit(SmoothingSpline, t, x, 0.0)
-    splines[2] = fit(SmoothingSpline, t, y, 0.0)
-    splines[3] = fit(SmoothingSpline, t, z, 0.0)
-    splines[4] = fit(SmoothingSpline, t, vx, 0.0)
-    splines[5] = fit(SmoothingSpline, t, vy, 0.0)
-    splines[6] = fit(SmoothingSpline, t, vz, 0.0)
-    Trajectory(initial, final, t, splines, events)
+function Trajectory(initial, final, t, vectors, events=LogEntry[])
+    n = length(vectors[1])
+    splines = Array{SmoothingSpline}(n)
+    arr = hcat(vectors...)'
+    m = size(arr)[2]
+    for i = 1:m
+        splines[i] = fit(SmoothingSpline, t, arr[:,i], 0.0)
+    end
+    Trajectory(initial, final, t, splines, arr, events)
 end
 
 function show(io::IO, tra::Trajectory)
@@ -48,6 +47,9 @@ function interpolate(tra::Trajectory, time)
 end
 
 function state(tra::Trajectory, time)
+    if isempty(tra.times)
+        error("Trajectory does not contain data points.")
+    end
     rv = interpolate(tra, time)
     r = rv[1:3]
     v = rv[4:6]
