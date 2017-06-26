@@ -46,4 +46,21 @@
     tra = propagate(ode, iss)
     res = in_seconds(epoch(final(tra)) - epoch(initial(tra)))
     @test res ≈ in_seconds(60seconds)
+
+    iss1 = State(t, r, v * 0.7)
+    ode = ODE(events=[Event(detector=Height(200.0, false), updater=Stop())])
+    tra = propagate(ode, iss1)
+    @test norm(position(final(tra))) - mean_radius(body(iss1)) ≈ 200.0
+
+    ode = ODE(events=[Event(detector=Impact(), updater=Stop())])
+    tra = propagate(ode, iss1)
+    height = norm(position(final(tra))) - mean_radius(body(iss1))
+    @test isapprox(height, 0.0, atol=1e-10)
+
+    events = [
+        Event(detector=Pericenter(), updater=ImpulsiveManeuver(along=-1.0)),
+        Event(detector=Impact(), updater=Abort()),
+    ]
+    ode = ODE(events=events)
+    @test_throws ErrorException propagate(ode, iss)
 end

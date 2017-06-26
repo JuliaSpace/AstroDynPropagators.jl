@@ -5,8 +5,8 @@ import AstroDynBase: epoch
 import DifferentialEquations: terminate!
 
 export Detector, Updater, Event, detect, update!,
-    Apocenter, Pericenter, Timed,
-    Abort, Stop
+    Apocenter, Pericenter, Timed, Impact, Height,
+    Abort, Stop, ImpulsiveManeuver
 
 abstract type Detector end
 abstract type Updater end
@@ -52,7 +52,17 @@ end
 struct Impact <: Detector end
 
 function detect(::Impact, t, y, params, propagator)
-    -norm(y[1:3]) - mean_radius(center(propagator))
+    -(norm(y[1:3]) - mean_radius(center(propagator)))
+end
+
+struct Height{T<:Number} <: Detector
+    height::T
+    ascending::Bool
+end
+
+function detect(h::Height, t, y, params, propagator)
+    height = norm(y[1:3]) - mean_radius(center(propagator)) - h.height
+    h.ascending ? height : -height
 end
 
 @with_kw struct Abort <: Updater
@@ -74,6 +84,20 @@ function update!(u::Stop, integrator, id, params, propagator)
     if count_id(id, params.log) == u.num
         terminate!(integrator)
     end
+end
+
+struct ImpulsiveManeuver{T<:Number} <: Updater
+    Δv::Array{T}
+end
+
+function ImpulsiveManeuver(;radial=0.0, along=0.0, cross=0.0)
+    ImpulsiveManeuver([radial, along, cross])
+end
+
+function update!(man::ImpulsiveManeuver, integrator, id, params, propagator)
+    rot = Rotation(RAC, propagator.frame, integrator.u[1:3], integrator.u[4:6])
+    Δv, _ = rot(man.Δv, zeros(3))
+    integrator.u[4:6] .+= Δv
 end
 
 struct LogEntry

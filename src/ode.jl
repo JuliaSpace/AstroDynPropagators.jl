@@ -1,7 +1,8 @@
 using Parameters
 
 import DifferentialEquations: ODEProblem, Vern9, solve, terminate!,
-    OrdinaryDiffEqAdaptiveAlgorithm, ContinuousCallback, CallbackSet
+    OrdinaryDiffEqAdaptiveAlgorithm, ContinuousCallback, CallbackSet,
+    set_proposed_dt!
 
 export ODE
 
@@ -89,5 +90,6 @@ function affect!(integrator, idx, evt, params, propagator)
 
     if !isnull(evt.updater)
         update!(get(evt.updater), integrator, idx, params, propagator)
+        set_proposed_dt!(integrator, 1.0)
     end
 end
