@@ -1,8 +1,8 @@
 using Parameters
 
 import DifferentialEquations: ODEProblem, Vern9, solve, terminate!,
-    OrdinaryDiffEqAdaptiveAlgorithm, ContinuousCallback, CallbackSet,
-    set_proposed_dt!
+    ContinuousCallback, CallbackSet, set_proposed_dt!
+import DifferentialEquations.OrdinaryDiffEq: OrdinaryDiffEqAdaptiveAlgorithm
 
 export ODE
 
