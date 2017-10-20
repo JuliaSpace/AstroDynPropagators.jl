@@ -27,7 +27,7 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
         F<:Frame, C<:CelestialBody}
     s = State(s0, frame=F, body=C)
     t0 = 0.0
-    t1 = in_seconds(Δt)
+    t1 = seconds(Δt)
     y0 = array(s)
     prm = ODEParams(s, LogEntry[])
     callbacks = ContinuousCallback[]

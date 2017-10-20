@@ -44,8 +44,8 @@
 
     ode = ODE(events=[Event(detector=Timed(60.0), updater=Stop())])
     tra = propagate(ode, iss)
-    res = in_seconds(epoch(final(tra)) - epoch(initial(tra)))
-    @test res ≈ in_seconds(60seconds)
+    res = seconds(epoch(final(tra)) - epoch(initial(tra)))
+    @test res ≈ seconds(60seconds)
 
     iss1 = State(t, r, v * 0.7)
     ode = ODE(events=[Event(detector=Height(200.0, false), updater=Stop())])
