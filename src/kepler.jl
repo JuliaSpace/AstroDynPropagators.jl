@@ -12,7 +12,7 @@ end
 
 function propagate(p::Kepler, s0::State, Δep, points)
     ep1 = epoch(s0) + Δep
-    Δt = seconds(Δep)
+    Δt = get(seconds(Δep))
     if points == :none
         r1, v1 = kepler(μ(body(s0)), position(s0), velocity(s0), Δt,
             p.iterations, p.rtol)
