@@ -2,7 +2,7 @@ using AstroDynBase
 using Parameters
 
 import AstroDynBase: epoch
-import DifferentialEquations: terminate!
+import OrdinaryDiffEq: terminate!
 
 export Detector, Updater, Event, detect, update!,
     Apocenter, Pericenter, Timed, Impact, Height,
