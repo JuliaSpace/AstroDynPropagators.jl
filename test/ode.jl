@@ -1,6 +1,5 @@
 using AstroDynBase
 using AstroDynCoordinates
-using DifferentialEquations
 using JPLEphemeris
 using RemoteFiles
 
