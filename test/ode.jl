@@ -1,3 +1,4 @@
+using AstroBase: sun, moon
 using AstroDynBase
 using AstroDynCoordinates
 using JPLEphemeris
@@ -44,7 +45,7 @@ load_ephemeris!(SPK, path(de430))
     s0 = State(ep, r0, v0)
     s1 = State(ep + Δt, r1, v1)
     ode = ODE(
-        forces=[UniformGravity(), ThirdBody(Sun, Moon)],
+        forces=[UniformGravity(), ThirdBody(sun, moon)],
         maxstep=100.0,
     )
     tra = propagate(ode, s0, Δt)

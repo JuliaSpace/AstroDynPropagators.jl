@@ -1,5 +1,7 @@
 using AstroDynBase
+using LinearAlgebra
 using Parameters
+using Nullables
 
 import AstroDynBase: epoch
 import OrdinaryDiffEq: terminate!
@@ -18,7 +20,7 @@ abstract type Updater end
 end
 
 function detect(det::Detector, t, y, params, propagator)
-    error("No 'detect' method defined for '$(Base.datatype_name(typeof(det)))'")
+    error("No 'detect' method defined for '$(Base.nameof(typeof(det)))'")
 end
 
 struct Timed{T<:Number} <: Detector

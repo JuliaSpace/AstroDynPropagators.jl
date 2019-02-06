@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 @testset "Events" begin
     r = [
     6068279.27,

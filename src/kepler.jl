@@ -19,8 +19,8 @@ function propagate(p::Kepler, s0::State, Δep, points)
         s1 = State(ep1, r1, v1, frame(s0), body(s0))
         Trajectory(s0, s1)
     else
-        times = collect(linspace(zero(Δt), Δt, p.points))
-        vectors = Vector{Vector}(p.points)
+        times = collect(range(zero(Δt), stop=Δt, length=p.points))
+        vectors = Vector{Vector}(undef, p.points)
         for (i, t) in enumerate(times)
             r, v = kepler(μ(body(s0)), position(s0), velocity(s0), t,
                 p.iterations, p.rtol)

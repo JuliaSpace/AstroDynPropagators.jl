@@ -1,3 +1,4 @@
+import AstroBase
 using Parameters
 
 import OrdinaryDiffEq: ODEProblem, Vern9, solve, terminate!,
@@ -6,9 +7,9 @@ import OrdinaryDiffEq: OrdinaryDiffEqAdaptiveAlgorithm
 
 export ODE
 
-@with_kw struct ODE{F<:Frame,C<:CelestialBody} <: Propagator
+@with_kw struct ODE{F<:Frame, C} <: Propagator
     frame::Type{F} = GCRF
-    center::Type{C} = Earth
+    center::C = AstroBase.earth
     forces::Vector{Force} = [UniformGravity()]
     minstep::Float64 = 0.0
     maxstep::Float64 = Inf
@@ -16,7 +17,7 @@ export ODE
     events::Vector{Event} = Event[]
 end
 
-center(ode::ODE{<:Frame,C}) where {C<:CelestialBody} = C
+center(ode) = ode.center
 
 struct ODEParams
     s0::State
@@ -24,8 +25,9 @@ struct ODEParams
 end
 
 function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
-        F<:Frame, C<:CelestialBody}
-    s = State(s0, frame=F, body=C)
+        F<:Frame, C}
+    #= s = State(s0, frame=F, body=C) =#
+    s = s0
     t0 = 0.0
     t1 = get(seconds(Δt))
     y0 = array(s)
@@ -33,13 +35,13 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
     callbacks = ContinuousCallback[]
     for (id, evt) in enumerate(p.events)
         push!(callbacks, ContinuousCallback(
-            (t, u, int) -> condition(t, u, int, evt, prm, p),
+            (u, t, int) -> condition(t, u, int, evt, prm, p),
             (int) -> affect!(int, id, evt, prm, p),
             nothing,
         ))
     end
     prob = ODEProblem(
-        (t, y, δy) -> rhs!(t, y, δy, prm, p),
+        (δy, y, _, t) -> rhs!(t, y, δy, prm, p),
         y0, (t0, t1),
         callback=CallbackSet(callbacks...),
     )
@@ -53,7 +55,8 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
         error("Solver returned error: $(res.retcode)")
     end
     ep1 = epoch(s0) + res.t[end] * seconds
-    s1 = State(ep1, res.u[end][1:3], res.u[end][4:6], F, C)
+    #= s1 = State(ep1, res.u[end][1:3], res.u[end][4:6], F, C) =#
+    s1 = State(ep1, res.u[end][1:3], res.u[end][4:6], F, Earth)
     Trajectory(s, s1, res.t, res.u, prm.log)
 end
 
@@ -69,9 +72,9 @@ function rhs!(t, y, δy, params, propagator)
     for force in propagator.forces
         evaluate!(force, δv, t, ep, r, v, params, propagator)
     end
-    if isrotating(propagator.frame)
-        rotational!(δv, t, ep, r, v, params, propagator)
-    end
+    #= if isrotating(propagator.frame) =#
+    #=     rotational!(δv, t, ep, r, v, params, propagator) =#
+    #= end =#
 end
 
 function condition(t, y, integrator, evt, params, propagator)
@@ -85,7 +88,7 @@ function affect!(integrator, idx, evt, params, propagator)
     end
 
     ep = epoch(params.s0) + integrator.t * seconds
-    name = Base.datatype_name(typeof(evt.detector))
+    name = Base.nameof(typeof(evt.detector))
     push!(params.log, LogEntry(idx, name, integrator.t, ep))
 
     if !isnull(evt.updater)

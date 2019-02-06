@@ -1,5 +1,5 @@
 using AstroDynPropagators
-using Base.Test
+using Test
 
 @testset "AstroDynPropagators" begin
     include("kepler.jl")
