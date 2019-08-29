@@ -1,9 +1,9 @@
-using AstroDynBase
+using AstroBase
 using LinearAlgebra
 using Parameters
 using Nullables
 
-import AstroDynBase: epoch
+import AstroBase: epoch
 import OrdinaryDiffEq: terminate!
 
 export Detector, Updater, Event, detect, update!,
@@ -34,7 +34,7 @@ end
 struct Apocenter <: Detector end
 
 function detect(::Apocenter, t, y, params, propagator)
-    el = keplerian(y, μ(center(propagator)))
+    el = keplerian(y[1:3], y[4:6], grav_param(center(propagator)))
     ano = el[6]
     if ano > pi/2
         ano = abs(ano - pi)
@@ -47,14 +47,14 @@ end
 struct Pericenter <: Detector end
 
 function detect(::Pericenter, t, y, params, propagator)
-    el = keplerian(y, μ(center(propagator)))
+    el = keplerian(y[1:3], y[4:6], grav_param(propagator.center))
     isretrograde(el[3]) ? -el[6] : el[6]
 end
 
 struct Impact <: Detector end
 
 function detect(::Impact, t, y, params, propagator)
-    -(norm(y[1:3]) - mean_radius(center(propagator)))
+    -(norm(y[1:3]) - mean_radius(propagator.center))
 end
 
 struct Height{T<:Number} <: Detector
@@ -97,7 +97,7 @@ function ImpulsiveManeuver(;radial=0.0, along=0.0, cross=0.0)
 end
 
 function update!(man::ImpulsiveManeuver, integrator, id, params, propagator)
-    rot = Rotation(RAC, propagator.frame, integrator.u[1:3], integrator.u[4:6])
+    rot = Rotation(RAC(), propagator.frame, integrator.u[1:3], integrator.u[4:6])
     Δv, _ = rot(man.Δv, zeros(3))
     integrator.u[4:6] .+= Δv
 end

@@ -1,4 +1,4 @@
-import AstroBase
+using AstroBase
 using Parameters
 
 import OrdinaryDiffEq: ODEProblem, Vern9, solve, terminate!,
@@ -7,9 +7,9 @@ import OrdinaryDiffEq: OrdinaryDiffEqAdaptiveAlgorithm
 
 export ODE
 
-@with_kw struct ODE{F<:Frame, C} <: Propagator
-    frame::Type{F} = GCRF
-    center::C = AstroBase.earth
+@with_kw struct ODE{F, C} <: Propagator
+    frame::F = icrf
+    center::C = earth
     forces::Vector{Force} = [UniformGravity()]
     minstep::Float64 = 0.0
     maxstep::Float64 = Inf
@@ -17,20 +17,16 @@ export ODE
     events::Vector{Event} = Event[]
 end
 
-center(ode) = ode.center
-
 struct ODEParams
     s0::State
     log::Vector{LogEntry}
 end
 
-function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
-        F<:Frame, C}
-    #= s = State(s0, frame=F, body=C) =#
-    s = s0
+function propagate(p::ODE, s0::State, Δt, points)
+    s = State(s0, frame=p.frame, body=p.center)
     t0 = 0.0
-    t1 = get(seconds(Δt))
-    y0 = array(s)
+    t1 = value(seconds(Δt))
+    y0 = Array(array(s))
     prm = ODEParams(s, LogEntry[])
     callbacks = ContinuousCallback[]
     for (id, evt) in enumerate(p.events)
@@ -55,8 +51,7 @@ function propagate(p::ODE{F,C}, s0::State, Δt, points) where {
         error("Solver returned error: $(res.retcode)")
     end
     ep1 = epoch(s0) + res.t[end] * seconds
-    #= s1 = State(ep1, res.u[end][1:3], res.u[end][4:6], F, C) =#
-    s1 = State(ep1, res.u[end][1:3], res.u[end][4:6], F, Earth)
+    s1 = State(ep1, res.u[end][1:3], res.u[end][4:6], frame=p.frame, body=p.center)
     Trajectory(s, s1, res.t, res.u, prm.log)
 end
 

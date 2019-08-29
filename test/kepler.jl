@@ -1,5 +1,5 @@
-using AstroDynBase
-using AstroDynCoordinates
+using AstroBase
+using AstroCoordinates
 
 @testset "Kepler Propagator" begin
     r0 = [1131.340, -2282.343, 6672.423]
