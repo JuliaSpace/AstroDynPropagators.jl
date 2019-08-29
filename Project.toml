@@ -1,0 +1,22 @@
+name = "AstroDynPropagators"
+uuid = "0e0ca0a0-362b-5be1-9d42-a069d454749e"
+
+[deps]
+AstroBase = "e1773a3a-3ab2-51da-b25a-65b4161c689f"
+JPLEphemeris = "30a7bc16-7fba-505b-b600-cae92896a3fe"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Nullables = "4d1e1d77-625e-5b40-9113-a560ec7a8ecd"
+OptionalData = "fbd9d27c-2d1c-5c1c-99f2-7497d746985d"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+SmoothingSplines = "102930c3-cf33-599f-b3b1-9a29a5acab30"
+
+[compat]
+julia = "≥ 0.6.0"
+
+[extras]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["LinearAlgebra", "Test"]
