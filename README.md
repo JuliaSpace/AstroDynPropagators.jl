@@ -1,3 +1,8 @@
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+
+> AstroDynPropagators.jl is archived and will not be developed further. A well-maintained alternative in Julia is [SatelliteToolbox.jl](https://github.com/JuliaSpace/SatelliteToolbox.jl).
+> I ([@helgee](https://github.com/helgee)) am working on [Lox](https://github.com/lox-space/lox) which is a Rust-based library with a Python interface for interactive use.
+
 # AstroDynPropagators
 
 *Trajectory Propagators for Astrodynamics.jl*
